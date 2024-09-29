@@ -1,0 +1,14 @@
+allprojects {
+    // Repositories, von denen Abhängigkeiten heruntergeladen werden
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    // Jedes Subprojekt wird als Java-Projekt behandelt
+    apply plugin: 'java'
+
+    // Abhängigkeiten, die für alle Module gelten (z.B. JUnit für Tests)
+}
+

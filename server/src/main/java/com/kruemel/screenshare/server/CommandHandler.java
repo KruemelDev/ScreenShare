@@ -5,6 +5,12 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.kruemel.screenshare.dto.Packet;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 public class CommandHandler {
     public ConnectionHandler client;
     public CommandHandler(ConnectionHandler client){
@@ -12,21 +18,37 @@ public class CommandHandler {
     }
 
     public void HandleCommands(ClientData client){
-        String message = "";
+        String message;
+        Packet packet;
         while(true){
             try {
                 message = client.in.readUTF();
             }
             catch (EOFException e){
+                ConnectionHandler.removeClient(client);
                 break;
             }
             catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            finally {
-                ConnectionHandler.removeClient(client);
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            try {
+                packet = objectMapper.readValue(message, Packet.class);
+            } catch (JsonProcessingException e) {
+                Packet closePacket = new Packet("closeConnection", "");
+                ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+                String json;
+                try {
+                    json = ow.writeValueAsString(closePacket);
+                    this.client.WriteMessage(json);
+                } catch (JsonProcessingException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+                throw new RuntimeException(e);
             }
-            switch (message){
+            switch (packet.getCommand()){
                 case "getClients":
                     SendAvailableClients();
                     break;
@@ -56,8 +78,16 @@ public class CommandHandler {
         String finalMessage = message.toString();
         System.out.println(finalMessage);
 
-        //this.client.WriteMessage(finalMessage);
-        this.client.WriteMessage("jürgen");
+
+        Packet availableClientsPacket = new Packet("availableClients", finalMessage);
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
+        try {
+            json = ow.writeValueAsString(availableClientsPacket);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        this.client.WriteMessage(json);
     }
 
 }

@@ -2,10 +2,15 @@ package com.kruemel.screenshare.client;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.kruemel.screenshare.dto.Packet;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public class ConnectionHandler {
     public Socket socket;
@@ -13,6 +18,7 @@ public class ConnectionHandler {
     public DataOutputStream out;
 
 
+    public String[] availableClients = new String[0];
     public static ConnectionHandler instance;
 
     public ConnectionHandler(){
@@ -24,12 +30,17 @@ public class ConnectionHandler {
                 socket = new Socket(ip, port);
                 this.in = new DataInputStream(socket.getInputStream());
                 this.out = new DataOutputStream(socket.getOutputStream());
-                WriteMessage(name);
+
+                Packet packet = new Packet("name", name);
+                ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+                String json = ow.writeValueAsString(packet);
+                WriteMessage(json);
 
                 Thread commandHandlerThread = new Thread(new CommandHandler());
                 commandHandlerThread.start();
                 WindowManager.instance.frame.getContentPane().removeAll();
                 WindowManager.instance.frame.repaint();
+                RequestAvailableClients();
                 WindowManager.instance.ScreenShareConnectionMenu();
             }
             catch(IOException e){
@@ -50,6 +61,7 @@ public class ConnectionHandler {
 
     synchronized public void CloseConnection(){
         if (socket != null){
+            //TODO write to packet
             WriteMessage("closeConnection");
             try {
                 socket.close();
@@ -60,20 +72,16 @@ public class ConnectionHandler {
 
     }
 
-    public String[] GetAvailableClients(){
-
-        WriteMessage("getClients");
-        String availableClients;
-        ArrayList<String> clientsNames = new ArrayList<>();
+    public void RequestAvailableClients(){
+        Packet getClientsPacket = new Packet("getClients", "");
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
         try {
-            //TODO geht nicht weil parallel in commandhandler gelesen wird -> fix: nur in commandHandler lesen und eine packet klasse einrichten die bei client und server verwendet wird und dann in json umgewandelt wird
-            availableClients = in.readUTF();
-        } catch (Exception e) {
-            WindowManager.resetToConnectMenu();
-            return null;
+            json = ow.writeValueAsString(getClientsPacket);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
-
-        return availableClients.split("\\|");
+        WriteMessage(json);
     }
 
 

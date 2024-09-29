@@ -90,8 +90,8 @@ public class WindowManager {
         frame.repaint();
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        System.out.println("hier");
-        JList<String> clientNameList = new JList<String>(ConnectionHandler.instance.GetAvailableClients());
+        System.out.println("screenShareconnectionmenu");
+        JList<String> clientNameList = new JList<String>(ConnectionHandler.instance.availableClients);
         clientNameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         clientNameList.add(panel);
         frame.add(panel);
@@ -101,6 +101,7 @@ public class WindowManager {
 
     public static void resetToConnectMenu(){
         ConnectionHandler.instance.CloseConnection();
+        ConnectionHandler.instance.availableClients = new String[0];
         ConnectionHandler.instance.socket = null;
         ConnectionHandler.instance.in = null;
         ConnectionHandler.instance.out = null;
