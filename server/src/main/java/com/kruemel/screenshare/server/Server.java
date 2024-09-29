@@ -1,4 +1,4 @@
-package main.Server;
+package com.kruemel.screenshare.server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -7,7 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Main {
+public class Server {
 	
     public static void main(String[] args){
         ServerSocket server;
@@ -32,7 +32,7 @@ public class Main {
                     socket.close();
                     continue;
                 }
-                Client client = new Client(name, socket);
+                ClientData client = new ClientData(name, socket);
                 ConnectionHandler.clients.add(client);
                 
                 Thread clientHandler = new Thread(new ConnectionHandler(client));

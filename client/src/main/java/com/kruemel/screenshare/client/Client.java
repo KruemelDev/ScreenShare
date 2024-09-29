@@ -1,6 +1,6 @@
-package main.Client;
+package com.kruemel.screenshare.client;
 
-public class Main {
+public class Client {
 
     public static void main(String[] args) {
         WindowManager windowManager = new WindowManager("Screen Share", 1280, 720);

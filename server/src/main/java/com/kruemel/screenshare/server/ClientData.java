@@ -1,11 +1,11 @@
-package main.Server;
+package com.kruemel.screenshare.server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.*;
 
-public class Client {
+public class ClientData {
 	public String name;
 	public Socket socket;
 	public DataInputStream in;
@@ -20,7 +20,7 @@ public class Client {
 
 	public statusModes status;
 	
-	public Client(String name, Socket socket) {
+	public ClientData(String name, Socket socket) {
 		this.name = name;
 		this.socket = socket;
         try {
@@ -40,7 +40,7 @@ public class Client {
 		if(obj == null || this.getClass() != obj.getClass()){
 			return false;
 		}
-		Client client = (Client) obj;
+		ClientData client = (ClientData) obj;
 		return this.name.equals(client.name);
 	}
 

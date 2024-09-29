@@ -1,9 +1,8 @@
-package main.Server;
+package com.kruemel.screenshare.server;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
+
 import java.util.ArrayList;
 
 public class CommandHandler {
@@ -12,7 +11,7 @@ public class CommandHandler {
         this.client = client;
     }
 
-    public void HandleCommands(Client client){
+    public void HandleCommands(ClientData client){
         String message = "";
         while(true){
             try {
@@ -29,7 +28,6 @@ public class CommandHandler {
             }
             switch (message){
                 case "getClients":
-                    System.out.println("hiuerqwerqewr");
                     SendAvailableClients();
                     break;
                 case "closeConnection":
@@ -37,7 +35,6 @@ public class CommandHandler {
                     return;
             }
         }
-
 
 
     }
@@ -58,6 +55,7 @@ public class CommandHandler {
 
         String finalMessage = message.toString();
         System.out.println(finalMessage);
+
         //this.client.WriteMessage(finalMessage);
         this.client.WriteMessage("jürgen");
     }

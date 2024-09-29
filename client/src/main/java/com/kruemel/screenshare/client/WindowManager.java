@@ -1,4 +1,4 @@
-package main.Client;
+package com.kruemel.screenshare.client;
 
 import javax.swing.*;
 import java.awt.*;

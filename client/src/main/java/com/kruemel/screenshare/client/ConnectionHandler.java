@@ -1,4 +1,5 @@
-package main.Client;
+package com.kruemel.screenshare.client;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -65,6 +66,7 @@ public class ConnectionHandler {
         String availableClients;
         ArrayList<String> clientsNames = new ArrayList<>();
         try {
+            //TODO geht nicht weil parallel in commandhandler gelesen wird -> fix: nur in commandHandler lesen und eine packet klasse einrichten die bei client und server verwendet wird und dann in json umgewandelt wird
             availableClients = in.readUTF();
         } catch (Exception e) {
             WindowManager.resetToConnectMenu();

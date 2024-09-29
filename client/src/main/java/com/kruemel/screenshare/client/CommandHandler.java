@@ -1,7 +1,9 @@
-package main.Client;
+package com.kruemel.screenshare.client;
 
 import java.io.EOFException;
 import java.io.IOException;
+
+import com.kruemel.screenshare.dto.*;
 
 public class CommandHandler implements Runnable {
 
