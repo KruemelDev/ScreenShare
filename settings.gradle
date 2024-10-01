@@ -13,4 +13,4 @@ plugins {
 }
 
 rootProject.name = 'ScreeenShare'
-include('app', 'list', 'utilities', 'client', 'server', 'shared')
+include('client', 'server', 'shared')

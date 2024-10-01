@@ -4,13 +4,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.kruemel.screenshare.dto.Packet;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 
 public class ConnectionHandler {
     public Socket socket;
@@ -81,6 +79,7 @@ public class ConnectionHandler {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+
         WriteMessage(json);
     }
 

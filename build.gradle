@@ -2,13 +2,15 @@ allprojects {
     // Repositories, von denen Abhängigkeiten heruntergeladen werden
     repositories {
         mavenCentral()
+
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
+
 }
 
 subprojects {
-    // Jedes Subprojekt wird als Java-Projekt behandelt
     apply plugin: 'java'
-
-    // Abhängigkeiten, die für alle Module gelten (z.B. JUnit für Tests)
 }
 
