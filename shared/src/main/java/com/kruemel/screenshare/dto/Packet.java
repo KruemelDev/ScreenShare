@@ -11,6 +11,9 @@ public class Packet {
         this.command = command;
         this.data = data;
     }
+    public Packet(String command) {
+        this.command = command;
+    }
 
 
     public String getCommand() {

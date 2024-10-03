@@ -31,28 +31,26 @@ public class Server {
                 Socket socket = server.accept();
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 String namePacket = in.readUTF();
-                System.out.println("nach read");
+
                 ObjectMapper objectMapper = new ObjectMapper();
                 Packet packet = objectMapper.readValue(namePacket, Packet.class);
-                System.out.println("vor get data" + packet);
+
                 String name = packet.getData();
-                System.out.println(name);
 
                 if(Objects.equals(packet.getCommand(), "name") && !ConnectionHandler.DuplicateName(name) && !name.contains("|")) {
                     ClientData client = new ClientData(name, socket);
                     ConnectionHandler.clients.add(client);
                     Thread clientHandler = new Thread(new ConnectionHandler(client));
                     clientHandler.start();
-                    System.out.println("hiernach");
+
                 }
                 else{
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                    Packet closePacket = new Packet("closeConnection", "");
+                    Packet closePacket = new Packet("closeConnection");
                     ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
                     String json = ow.writeValueAsString(closePacket);
                     try{
                         out.writeUTF(json);
-                        socket.close();
                     }
                     catch(EOFException e){
                         continue;

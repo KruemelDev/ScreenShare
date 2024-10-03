@@ -2,9 +2,6 @@ package com.kruemel.screenshare.client;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,14 +18,14 @@ public class CommandHandler implements Runnable {
                 message = ConnectionHandler.instance.in.readUTF();
 
             } catch (EOFException e){
-                WindowManager.resetToConnectMenu();
+                Client.resetToConnectMenu();
                 break;
             }
             catch (IOException e) {
                 throw new RuntimeException(e);
             }
             catch (Exception e) {
-                WindowManager.resetToConnectMenu();
+                Client.resetToConnectMenu();
                 return;
             }
 
@@ -41,10 +38,16 @@ public class CommandHandler implements Runnable {
             }
             switch (packet.getCommand()){
                 case "closeConnection":
-                    WindowManager.resetToConnectMenu();
+                    Client.resetToConnectMenu();
+                    WindowManager.instance.ShowErrorMessage("Try to reconnect under a different name", "Connection closed");
                     return;
                 case "availableClients":
                     updateAvailableClientsList(packet.getData());
+                    break;
+
+                case "transferScreenRequest":
+                    break;
+                case "transferScreenStop":
                     break;
                 case "transferScreen":
                     break;
@@ -53,21 +56,7 @@ public class CommandHandler implements Runnable {
     }
 
     private void updateAvailableClientsList(String availableClients) {
-        String[] clientList = availableClients.split("\\|");
-        ArrayList<String> nameToAdd = new ArrayList<>();
-
-        ArrayList<String> availableClientsArray = new ArrayList<>(Arrays.asList(ConnectionHandler.instance.availableClients));
-
-        for (String client : clientList) {
-
-            if (!availableClientsArray.contains(client)) {
-                nameToAdd.add(client);
-            }
-        }
-
-        if (!nameToAdd.isEmpty()) {
-            availableClientsArray.addAll(nameToAdd);
-            ConnectionHandler.instance.availableClients = availableClientsArray.toArray(new String[0]);
-        }
+        ConnectionHandler.instance.availableClients = availableClients.split("\\|");
     }
+
 }

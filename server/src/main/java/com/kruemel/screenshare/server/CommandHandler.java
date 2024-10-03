@@ -36,7 +36,7 @@ public class CommandHandler {
             try {
                 packet = objectMapper.readValue(message, Packet.class);
             } catch (JsonProcessingException e) {
-                Packet closePacket = new Packet("closeConnection", "");
+                Packet closePacket = new Packet("closeConnection");
                 ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
                 String json;
                 try {
@@ -72,7 +72,6 @@ public class CommandHandler {
             if (i < availableClientsName.size() - 1) {
                 message.append("|");
             }
-            System.out.println("in for");
         }
 
         String finalMessage = message.toString();

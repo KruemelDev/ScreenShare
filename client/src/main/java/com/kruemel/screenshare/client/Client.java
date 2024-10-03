@@ -8,4 +8,15 @@ public class Client {
         new ConnectionHandler();
     }
 
+    public static void resetToConnectMenu(){
+        ConnectionHandler.instance.CloseConnection();
+        ConnectionHandler.instance.availableClients = new String[0];
+        ConnectionHandler.instance.socket = null;
+        ConnectionHandler.instance.in = null;
+        ConnectionHandler.instance.out = null;
+        WindowManager.instance.frame.getContentPane().removeAll();
+        WindowManager.instance.frame.repaint();
+        WindowManager.instance.AddConnectionFields();
+    }
+
 }

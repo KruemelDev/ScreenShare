@@ -59,8 +59,15 @@ public class ConnectionHandler {
 
     synchronized public void CloseConnection(){
         if (socket != null){
-            //TODO write to packet
-            WriteMessage("closeConnection");
+            Packet packet = new Packet("closeConnection");
+            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+            String json;
+            try {
+                json = ow.writeValueAsString(packet);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            WriteMessage(json);
             try {
                 socket.close();
             } catch (IOException e) {
@@ -71,7 +78,7 @@ public class ConnectionHandler {
     }
 
     public void RequestAvailableClients(){
-        Packet getClientsPacket = new Packet("getClients", "");
+        Packet getClientsPacket = new Packet("getClients");
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json;
         try {
@@ -96,7 +103,7 @@ public class ConnectionHandler {
                     "Lost connection to server",
                     "Connection Error"
             );
-            WindowManager.resetToConnectMenu();
+            Client.resetToConnectMenu();
         }
 
     }

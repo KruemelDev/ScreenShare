@@ -77,7 +77,6 @@ public class WindowManager {
             }
         });
         panel.add(connectButton);
-
         panel.add(Box.createVerticalGlue());
 
         frame.pack();
@@ -88,25 +87,33 @@ public class WindowManager {
     public void ScreenShareConnectionMenu(){
         frame.getContentPane().removeAll();
         frame.repaint();
+
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        System.out.println("screenShareconnectionmenu");
+
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                ConnectionHandler.instance.RequestAvailableClients();
+                ScreenShareConnectionMenu();
+            }
+        });
+        panel.add(refreshButton);
+
         JList<String> clientNameList = new JList<String>(ConnectionHandler.instance.availableClients);
+        clientNameList.setPreferredSize(new Dimension(200, 50));
         clientNameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        clientNameList.add(panel);
+        panel.add(clientNameList);
+
+        //add connect button for screen transfer
         frame.add(panel);
         frame.setVisible(true);
 
     }
+    public void RequestForTransferScreenPopUp(){
 
-    public static void resetToConnectMenu(){
-        ConnectionHandler.instance.CloseConnection();
-        ConnectionHandler.instance.availableClients = new String[0];
-        ConnectionHandler.instance.socket = null;
-        ConnectionHandler.instance.in = null;
-        ConnectionHandler.instance.out = null;
-        WindowManager.instance.frame.getContentPane().removeAll();
-        WindowManager.instance.frame.repaint();
-        WindowManager.instance.AddConnectionFields();
     }
+
 }
