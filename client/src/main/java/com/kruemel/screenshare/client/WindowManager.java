@@ -107,13 +107,35 @@ public class WindowManager {
         clientNameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         panel.add(clientNameList);
 
+        JButton connectButton = new JButton("Connect");
+        connectButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        connectButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                System.out.println("clientNameList.getSelectedValue()");
+                ConnectionHandler.instance.ReqestScreenShare(clientNameList.getSelectedValue());
+                ScreenShareConnectionMenu();
+            }
+        });
+        panel.add(connectButton);
         //add connect button for screen transfer
         frame.add(panel);
         frame.setVisible(true);
 
     }
-    public void RequestForTransferScreenPopUp(){
+    public void RequestForTransferScreenPopUp(String name){
+        int result = JOptionPane.showConfirmDialog(
+                frame,
+                "Do you want allow Screen Sharing from " + name + "?",
+                "Confirmation",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
 
+
+        if (result == JOptionPane.YES_OPTION) {
+            ConnectionHandler.instance.SendScreenShareAcception(name);
+        }
     }
 
 }

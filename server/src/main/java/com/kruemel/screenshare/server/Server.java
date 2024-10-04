@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.kruemel.screenshare.dto.Packet;
 public class Server {
-	
+
     public static void main(String[] args){
         ServerSocket server;
 
@@ -26,7 +26,7 @@ public class Server {
             throw new RuntimeException(e);
         }
         while(true) {
-    		try {
+            try {
 
                 Socket socket = server.accept();
                 DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -61,9 +61,9 @@ public class Server {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-    	}
-    	
-        
-        
+        }
+
+
+
     }
 }

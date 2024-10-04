@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ConnectionHandler implements Runnable{
-	
+
 	public static ArrayList<ClientData> clients = new ArrayList<ClientData>();
 	public ClientData client;
-	
+
 	public ConnectionHandler(ClientData client) {
 		this.client = client;
 	}
@@ -16,7 +16,7 @@ public class ConnectionHandler implements Runnable{
 	@Override
 	public void run() {
 		this.client.status = ClientData.statusModes.AVAILABLE;
-		CommandHandler commandHandler = new CommandHandler(this);
+		CommandHandler commandHandler = new CommandHandler(this.client);
 		commandHandler.HandleCommands(this.client);
 	}
 
@@ -31,34 +31,17 @@ public class ConnectionHandler implements Runnable{
 		return clientList;
 	}
 
-	public void WriteMessage(String message) {
-		try {
-			if (this.client.out != null) {
-				this.client.out.writeUTF(message);
-				this.client.out.flush();
-			}
-		} catch (IOException e) {
 
-            try {
-				this.client.socket.close();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-			finally {
-				removeClient(client);
-			}
-        }
-	}
 	synchronized public static void removeClient(ClientData client) {
 		clients.remove(client);
 	}
 
 	public static boolean DuplicateName(String name){
-        for (ClientData client : clients) {
-            if (client.name.equals(name)) {
-                return true;
-            }
-        }
+		for (ClientData client : clients) {
+			if (client.name.equals(name)) {
+				return true;
+			}
+		}
 		return false;
 
 	}

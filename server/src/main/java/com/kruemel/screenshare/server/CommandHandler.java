@@ -4,16 +4,16 @@ import java.io.EOFException;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.kruemel.screenshare.dto.Packet;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class CommandHandler {
-    public ConnectionHandler client;
-    public CommandHandler(ConnectionHandler client){
+    public ClientData client;
+    public CommandHandler(ClientData client){
         this.client = client;
     }
 
@@ -55,11 +55,56 @@ public class CommandHandler {
                 case "closeConnection":
                     ConnectionHandler.removeClient(client);
                     return;
+                case "requestScreenShare":
+                    String target = packet.getData();
+                    ClientData clientData = getClientByName(target);
+                    if(clientData != null){
+                        screenShareRequest(clientData, client.name);
+                    }
+                    break;
+                case "acceptScreenShare":
+                    ClientData allowedClient = getClientByName(packet.getData());
+                    if(this.client.screenShareAllowed.contains(allowedClient)){
+                        break;
+                    }
+                    this.client.screenShareAllowed.add(allowedClient);
+                    break;
             }
         }
 
 
     }
+    private void screenShareRequest(ClientData clientDataTarget, String requestClientName) {
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
+        if(Objects.equals(clientDataTarget.name, requestClientName)){
+            Packet errorPacket = new Packet("error", "You cannot share your screen with yourself");
+            try {
+                json = ow.writeValueAsString(errorPacket);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            clientDataTarget.WriteMessage(json);
+            return;
+        }
+        Packet transferScreenRequestPacket = new Packet("transferScreenRequest", requestClientName);
+
+        try {
+            json = ow.writeValueAsString(transferScreenRequestPacket);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        clientDataTarget.WriteMessage(json);
+    }
+    private ClientData getClientByName(String name) {
+        for(int i = 0; i < ConnectionHandler.clients.size(); i++) {
+            if(Objects.equals(ConnectionHandler.clients.get(i).name, name)) {
+                return ConnectionHandler.clients.get(i);
+            }
+        }
+        return null;
+    }
+
     public void SendAvailableClients(){
         ArrayList<String> availableClientsName = ConnectionHandler.getAvailableClientsName();
         StringBuilder message = new StringBuilder();
@@ -75,8 +120,6 @@ public class CommandHandler {
         }
 
         String finalMessage = message.toString();
-        System.out.println(finalMessage);
-
 
         Packet availableClientsPacket = new Packet("availableClients", finalMessage);
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();

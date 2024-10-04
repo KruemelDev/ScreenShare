@@ -37,6 +37,9 @@ public class CommandHandler implements Runnable {
                 throw new RuntimeException(e);
             }
             switch (packet.getCommand()){
+                case "error":
+                    WindowManager.instance.ShowErrorMessage(packet.getData(), packet.getCommand());
+                    break;
                 case "closeConnection":
                     Client.resetToConnectMenu();
                     WindowManager.instance.ShowErrorMessage("Try to reconnect under a different name", "Connection closed");
@@ -46,6 +49,7 @@ public class CommandHandler implements Runnable {
                     break;
 
                 case "transferScreenRequest":
+                    WindowManager.instance.RequestForTransferScreenPopUp(packet.getData());
                     break;
                 case "transferScreenStop":
                     break;

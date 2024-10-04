@@ -24,7 +24,7 @@ public class ConnectionHandler {
     }
     public void ConnectToServer(String ip, int port, String name){
         if(socket == null){
-                try{
+            try{
                 socket = new Socket(ip, port);
                 this.in = new DataInputStream(socket.getInputStream());
                 this.out = new DataOutputStream(socket.getOutputStream());
@@ -47,7 +47,7 @@ public class ConnectionHandler {
                 return;
             }
             catch(NullPointerException e){
-                    return;
+                return;
             }
 
         }
@@ -75,6 +75,30 @@ public class ConnectionHandler {
             }
         }
 
+    }
+
+    public void SendScreenShareAcception(String name){
+        Packet requestScreenShareAcceptPackage = new Packet("acceptScreenShare", name);
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
+        try {
+            json = ow.writeValueAsString(requestScreenShareAcceptPackage);
+        } catch(JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        WriteMessage(json);
+    }
+
+    public void ReqestScreenShare(String target) {
+        Packet requestScreenSharePackage = new Packet("requestScreenShare", target);
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
+        try {
+            json = ow.writeValueAsString(requestScreenSharePackage);
+        } catch(JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        WriteMessage(json);
     }
 
     public void RequestAvailableClients(){
