@@ -2,6 +2,7 @@ package com.kruemel.screenshare.client;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.CookieHandler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,13 +48,20 @@ public class CommandHandler implements Runnable {
                 case "availableClients":
                     updateAvailableClientsList(packet.getData());
                     break;
-
-                case "transferScreenRequest":
+                case "getSharedScreenRequest":
                     WindowManager.instance.RequestForTransferScreenPopUp(packet.getData());
                     break;
-                case "transferScreenStop":
+                case "getSharedScreenStop":
                     break;
-                case "transferScreen":
+                case "getSharedScreen":
+                    String base64ImagePiece = packet.getData();
+                    if(base64ImagePiece.equals("fullImage")){
+                        WindowManager.instance.ScreenShareDisplay(ConnectionHandler.instance.base64ImagePiece);
+                        ConnectionHandler.instance.base64ImagePiece = "";
+                    }
+                    else{
+                        ConnectionHandler.instance.base64ImagePiece += base64ImagePiece;
+                    }
                     break;
             }
         }

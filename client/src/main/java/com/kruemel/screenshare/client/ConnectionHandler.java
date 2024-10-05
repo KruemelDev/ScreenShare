@@ -19,6 +19,9 @@ public class ConnectionHandler {
     public String[] availableClients = new String[0];
     public static ConnectionHandler instance;
 
+    public volatile boolean screenShare = false;
+    public String base64ImagePiece = "";
+
     public ConnectionHandler(){
         instance = this;
     }
@@ -77,6 +80,14 @@ public class ConnectionHandler {
 
     }
 
+    public void ScreenShareStart(){
+        ShareScreen screenShare = new ShareScreen();
+        Thread shareScreenThread = new Thread(screenShare);
+        this.screenShare = true;
+        System.out.println("start screen share");
+        shareScreenThread.start();
+    }
+
     public void SendScreenShareAcception(String name){
         Packet requestScreenShareAcceptPackage = new Packet("acceptScreenShare", name);
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -89,7 +100,7 @@ public class ConnectionHandler {
         WriteMessage(json);
     }
 
-    public void ReqestScreenShare(String target) {
+    public void RequestScreenShare(String target) {
         Packet requestScreenSharePackage = new Packet("requestScreenShare", target);
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json;

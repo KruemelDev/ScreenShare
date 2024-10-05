@@ -1,10 +1,14 @@
 package com.kruemel.screenshare.client;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Base64;
 
 public class WindowManager {
     public JFrame frame;
@@ -12,8 +16,8 @@ public class WindowManager {
     private int width;
     private int height;
 
-    public static WindowManager instance = null;
 
+    public static WindowManager instance = null;
 
     public WindowManager(String windowName, int width, int height) {
         instance = this;
@@ -113,16 +117,42 @@ public class WindowManager {
             @Override
             public void actionPerformed(ActionEvent event) {
                 System.out.println("clientNameList.getSelectedValue()");
-                ConnectionHandler.instance.ReqestScreenShare(clientNameList.getSelectedValue());
-                ScreenShareConnectionMenu();
+                ConnectionHandler.instance.RequestScreenShare(clientNameList.getSelectedValue());
+
             }
         });
         panel.add(connectButton);
-        //add connect button for screen transfer
+
         frame.add(panel);
         frame.setVisible(true);
 
     }
+    public void ScreenShareDisplay(String base64Image){
+        frame.getContentPane().removeAll();
+        frame.repaint();
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        try {
+
+            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageBytes);
+            BufferedImage image = ImageIO.read(byteArrayInputStream);
+
+            ImageIcon imageIcon = new ImageIcon(image);
+            JLabel label = new JLabel(imageIcon);
+            frame.add(label);
+
+            frame.pack();
+            frame.setVisible(true);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public void RequestForTransferScreenPopUp(String name){
         int result = JOptionPane.showConfirmDialog(
                 frame,
@@ -135,7 +165,10 @@ public class WindowManager {
 
         if (result == JOptionPane.YES_OPTION) {
             ConnectionHandler.instance.SendScreenShareAcception(name);
+
         }
+        ConnectionHandler.instance.ScreenShareStart();
+
     }
 
 }

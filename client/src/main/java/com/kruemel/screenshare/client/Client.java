@@ -14,6 +14,7 @@ public class Client {
         ConnectionHandler.instance.socket = null;
         ConnectionHandler.instance.in = null;
         ConnectionHandler.instance.out = null;
+        ConnectionHandler.instance.screenShare = false;
         WindowManager.instance.frame.getContentPane().removeAll();
         WindowManager.instance.frame.repaint();
         WindowManager.instance.AddConnectionFields();

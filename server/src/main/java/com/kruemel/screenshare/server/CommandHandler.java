@@ -69,11 +69,54 @@ public class CommandHandler {
                     }
                     this.client.screenShareAllowed.add(allowedClient);
                     break;
+                case "getScreen":
+                    String base64ImagePiece = packet.getData();
+                    if(base64ImagePiece.equals("fullImage")){
+                        sendScreen(this.client.base64ImagePiece);
+                        this.client.base64ImagePiece = "";
+                    }
+                    else{
+                        this.client.base64ImagePiece += base64ImagePiece;
+                    }
+                    break;
             }
         }
 
-
     }
+
+    private void sendScreen(String base64Image) {
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        int chunkSize = 1024;
+        String json;
+
+        for (ClientData client : this.client.screenShareAllowed) {
+
+            for (int i = 0; i < base64Image.length(); i += chunkSize) {
+
+                String chunk = base64Image.substring(i, Math.min(i + chunkSize, base64Image.length()));
+                Packet screenPacket;
+
+                try {
+                    screenPacket = new Packet("getSharedScreen", chunk);
+                    json = ow.writeValueAsString(screenPacket);
+
+                    client.WriteMessage(json);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            Packet imageCompletePacket = new Packet("getSharedScreen", "fullImage");
+            try{
+                json = ow.writeValueAsString(imageCompletePacket);
+            } catch(JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
+            this.client.WriteMessage(json);
+        }
+    }
+
+
     private void screenShareRequest(ClientData clientDataTarget, String requestClientName) {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json;
@@ -87,7 +130,7 @@ public class CommandHandler {
             clientDataTarget.WriteMessage(json);
             return;
         }
-        Packet transferScreenRequestPacket = new Packet("transferScreenRequest", requestClientName);
+        Packet transferScreenRequestPacket = new Packet("getSharedScreenRequest", requestClientName);
 
         try {
             json = ow.writeValueAsString(transferScreenRequestPacket);
