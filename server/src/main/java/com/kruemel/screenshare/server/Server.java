@@ -37,7 +37,7 @@ public class Server {
 
                 String name = packet.getData();
 
-                if(Objects.equals(packet.getCommand(), "name") && !ConnectionHandler.DuplicateName(name) && !name.contains("|")) {
+                if(Objects.equals(packet.getCommand(), "name") && !ConnectionHandler.ClientOnline(name) && !name.contains("|")) {
                     ClientData client = new ClientData(name, socket);
                     ConnectionHandler.clients.add(client);
                     Thread clientHandler = new Thread(new ConnectionHandler(client));

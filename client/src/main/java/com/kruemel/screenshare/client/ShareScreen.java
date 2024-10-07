@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.kruemel.screenshare.dto.Packet;
 
-import java.awt.AWTException;
-import java.awt.Rectangle;
-import java.awt.Robot;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -60,7 +57,7 @@ public class ShareScreen extends Thread {
             }
 
             ConnectionHandler.instance.WriteMessage(json);
-            Thread.sleep(1000);
+            Thread.sleep(200);
 
         } catch (AWTException | IOException e) {
             ConnectionHandler.instance.screenShare = false;

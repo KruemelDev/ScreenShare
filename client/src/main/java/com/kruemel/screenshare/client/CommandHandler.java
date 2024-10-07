@@ -3,6 +3,9 @@ package com.kruemel.screenshare.client;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.CookieHandler;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.util.Objects;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,22 +15,22 @@ public class CommandHandler implements Runnable {
 
     @Override
     public void run() {
-        String message;
+        String message = "";
         Packet packet;
         while (true) {
             try {
                 message = ConnectionHandler.instance.in.readUTF();
 
-            } catch (EOFException e){
+            } catch (SocketException e) {
+                Client.resetToConnectMenu();
+
+            }
+            catch (EOFException e){
                 Client.resetToConnectMenu();
                 break;
             }
             catch (IOException e) {
                 throw new RuntimeException(e);
-            }
-            catch (Exception e) {
-                Client.resetToConnectMenu();
-                return;
             }
 
             ObjectMapper objectMapper = new ObjectMapper();

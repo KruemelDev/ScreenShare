@@ -63,6 +63,9 @@ public class ClientData {
 				ConnectionHandler.removeClient(this);
 			}
 		}
+		catch (NullPointerException e) {
+			ConnectionHandler.removeClient(this);
+		}
 	}
 
 	@Override

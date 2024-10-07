@@ -1,6 +1,5 @@
 package com.kruemel.screenshare.server;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class ConnectionHandler implements Runnable{
@@ -36,7 +35,7 @@ public class ConnectionHandler implements Runnable{
 		clients.remove(client);
 	}
 
-	public static boolean DuplicateName(String name){
+	public static boolean ClientOnline(String name){
 		for (ClientData client : clients) {
 			if (client.name.equals(name)) {
 				return true;

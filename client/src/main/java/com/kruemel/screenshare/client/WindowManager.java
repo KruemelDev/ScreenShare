@@ -18,6 +18,7 @@ public class WindowManager {
 
 
     public static WindowManager instance = null;
+    private boolean screenShareInitialized = false;
 
     public WindowManager(String windowName, int width, int height) {
         instance = this;
@@ -129,10 +130,10 @@ public class WindowManager {
     }
     public void ScreenShareDisplay(String base64Image){
         frame.getContentPane().removeAll();
-        frame.repaint();
-        System.out.println("display screen share");
+        // TODO screenShareInitialized zurück auf false setzen wenn der bildschirm nicht mehr übertragen wird
+
         JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        //panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
         try {
 
             byte[] imageBytes = Base64.getDecoder().decode(base64Image);
@@ -141,19 +142,22 @@ public class WindowManager {
             BufferedImage image = ImageIO.read(byteArrayInputStream);
 
 
-            double scaleX = (double) (frame.getWidth() - 50) / image.getWidth();
-            double scaleY = (double) (frame.getHeight() - 20) / image.getHeight();
+            double scaleX = (double) frame.getWidth()  / (image.getWidth() + 200);
+            double scaleY = (double) frame.getHeight() / (image.getHeight() + 200);
             double scale = Math.min(scaleX, scaleY);
 
 
             int newImageWidth = (int) (image.getWidth() * scale);
             int newImageHeight = (int) (image.getHeight() * scale);
 
-            Image newImage = image.getScaledInstance(newImageWidth, newImageHeight, Image.SCALE_DEFAULT);
+            Image newImage = image.getScaledInstance(newImageWidth, newImageHeight, Image.SCALE_FAST);
             ImageIcon imageIcon = new ImageIcon(newImage);
             JLabel label = new JLabel(imageIcon);
-            frame.add(label);
+            panel.add(label);
 
+            frame.add(panel);
+
+            frame.repaint();
             frame.pack();
             frame.setVisible(true);
 

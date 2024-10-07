@@ -3,6 +3,8 @@ package com.kruemel.screenshare.server;
 import java.io.EOFException;
 import java.io.IOException;
 
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -23,6 +25,9 @@ public class CommandHandler {
         while(true){
             try {
                 message = client.in.readUTF();
+            }
+            catch (SocketException e){
+                break;
             }
             catch (EOFException e){
                 ConnectionHandler.removeClient(client);
@@ -88,9 +93,14 @@ public class CommandHandler {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         int chunkSize = 1024;
         String json;
+        ArrayList<ClientData> clientsToRemove = new ArrayList<>();
 
         for (ClientData client : this.client.screenShareAllowed) {
 
+            if(!ConnectionHandler.ClientOnline(client.name)){
+                clientsToRemove.add(client);
+                continue;
+            }
             for (int i = 0; i < base64Image.length(); i += chunkSize) {
 
                 String chunk = base64Image.substring(i, Math.min(i + chunkSize, base64Image.length()));
@@ -115,6 +125,9 @@ public class CommandHandler {
 
             client.WriteMessage(json);
 
+        }
+        for (ClientData client : clientsToRemove) {
+            this.client.screenShareAllowed.remove(client);
         }
     }
 
