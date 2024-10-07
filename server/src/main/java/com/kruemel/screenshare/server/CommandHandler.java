@@ -104,6 +104,7 @@ public class CommandHandler {
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }
+
             }
             Packet imageCompletePacket = new Packet("getSharedScreen", "fullImage");
             try{
@@ -112,7 +113,8 @@ public class CommandHandler {
                 throw new RuntimeException(e);
             }
 
-            this.client.WriteMessage(json);
+            client.WriteMessage(json);
+
         }
     }
 

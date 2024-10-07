@@ -130,7 +130,7 @@ public class WindowManager {
     public void ScreenShareDisplay(String base64Image){
         frame.getContentPane().removeAll();
         frame.repaint();
-
+        System.out.println("display screen share");
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         try {
@@ -140,7 +140,17 @@ public class WindowManager {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageBytes);
             BufferedImage image = ImageIO.read(byteArrayInputStream);
 
-            ImageIcon imageIcon = new ImageIcon(image);
+
+            double scaleX = (double) (frame.getWidth() - 50) / image.getWidth();
+            double scaleY = (double) (frame.getHeight() - 20) / image.getHeight();
+            double scale = Math.min(scaleX, scaleY);
+
+
+            int newImageWidth = (int) (image.getWidth() * scale);
+            int newImageHeight = (int) (image.getHeight() * scale);
+
+            Image newImage = image.getScaledInstance(newImageWidth, newImageHeight, Image.SCALE_DEFAULT);
+            ImageIcon imageIcon = new ImageIcon(newImage);
             JLabel label = new JLabel(imageIcon);
             frame.add(label);
 
@@ -165,9 +175,10 @@ public class WindowManager {
 
         if (result == JOptionPane.YES_OPTION) {
             ConnectionHandler.instance.SendScreenShareAcception(name);
+            ConnectionHandler.instance.ScreenShareStart();
 
         }
-        ConnectionHandler.instance.ScreenShareStart();
+
 
     }
 
