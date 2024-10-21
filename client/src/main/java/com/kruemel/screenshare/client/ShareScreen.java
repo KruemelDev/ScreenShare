@@ -57,7 +57,7 @@ public class ShareScreen extends Thread {
             }
 
             ConnectionHandler.instance.WriteMessage(json);
-            Thread.sleep(200);
+            Thread.sleep(50);
 
         } catch (AWTException | IOException e) {
             ConnectionHandler.instance.screenShare = false;

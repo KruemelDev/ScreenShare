@@ -1,5 +1,7 @@
 package com.kruemel.screenshare.client;
 
+import com.fasterxml.jackson.databind.ser.impl.WritableObjectId;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +20,9 @@ public class WindowManager {
 
 
     public static WindowManager instance = null;
-    private boolean screenShareInitialized = false;
+    public boolean watchScreenAllow = true;
+
+    private boolean firstScreenShareFrame = false;
 
     public WindowManager(String windowName, int width, int height) {
         instance = this;
@@ -34,6 +38,7 @@ public class WindowManager {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
         frame.setResizable(true);
+        //frame.setLayout(new BorderLayout());
         AddConnectionFields();
     }
 
@@ -128,24 +133,21 @@ public class WindowManager {
         frame.setVisible(true);
 
     }
-    public void ScreenShareDisplay(String base64Image){
-        frame.getContentPane().removeAll();
-        // TODO screenShareInitialized zurück auf false setzen wenn der bildschirm nicht mehr übertragen wird
+    public void ScreenShareDisplay(String base64Image) {
+        watchScreenAllow = true;
 
-        JPanel panel = new JPanel();
-        //panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        JPanel screenPanel = new JPanel();
+        JPanel settingsPanel = new JPanel();
+
         try {
-
             byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageBytes);
             BufferedImage image = ImageIO.read(byteArrayInputStream);
 
-
-            double scaleX = (double) frame.getWidth()  / (image.getWidth() + 200);
+            double scaleX = (double) frame.getWidth() / (image.getWidth() + 200);
             double scaleY = (double) frame.getHeight() / (image.getHeight() + 200);
             double scale = Math.min(scaleX, scaleY);
-
 
             int newImageWidth = (int) (image.getWidth() * scale);
             int newImageHeight = (int) (image.getHeight() * scale);
@@ -153,18 +155,41 @@ public class WindowManager {
             Image newImage = image.getScaledInstance(newImageWidth, newImageHeight, Image.SCALE_FAST);
             ImageIcon imageIcon = new ImageIcon(newImage);
             JLabel label = new JLabel(imageIcon);
-            panel.add(label);
+            screenPanel.removeAll();
+            screenPanel.add(label);
 
-            frame.add(panel);
+            JButton stopButton = new JButton("Stop Watching");
+            stopButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent event) {
+                    System.out.println("Stop watching");
+                    watchScreenAllow = false;
+                    firstScreenShareFrame = false;
+                    ConnectionHandler.instance.StopWatchingScreen();
+                    WindowManager.instance.ScreenShareConnectionMenu();
+                }
+            });
+            settingsPanel.removeAll();
+            settingsPanel.add(stopButton);
 
+            mainPanel.add(settingsPanel, BorderLayout.WEST);
+            mainPanel.add(screenPanel, BorderLayout.CENTER);
+
+            if (!firstScreenShareFrame) {
+                frame.add(mainPanel);
+                frame.setVisible(true);
+                firstScreenShareFrame = true;
+            } else {
+                frame.getContentPane().removeAll();
+                frame.add(mainPanel);
+            }
+
+            frame.revalidate();
             frame.repaint();
-            frame.pack();
-            frame.setVisible(true);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public void RequestForTransferScreenPopUp(String name){

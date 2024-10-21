@@ -13,7 +13,7 @@ public class ClientData {
 	public DataOutputStream out;
 
 	public String base64ImagePiece = "";
-
+	public ClientData currentScreenWatching;
 	public ArrayList<ClientData> screenShareAllowed = new ArrayList<>();
 	public enum statusModes{
 		AVAILABLE,

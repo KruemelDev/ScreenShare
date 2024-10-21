@@ -79,6 +79,18 @@ public class ConnectionHandler {
         }
 
     }
+    public void StopWatchingScreen(){
+        Packet requestScreenShareAcceptPackage = new Packet("stopScreen");
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
+        try {
+            json = ow.writeValueAsString(requestScreenShareAcceptPackage);
+        } catch(JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        WriteMessage(json);
+
+    }
 
     public void ScreenShareStart(){
         ShareScreen screenShare = new ShareScreen();
@@ -138,6 +150,7 @@ public class ConnectionHandler {
                     "Lost connection to server",
                     "Connection Error"
             );
+            ConnectionHandler.instance.screenShare = false;
             Client.resetToConnectMenu();
         }
 
