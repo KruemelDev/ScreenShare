@@ -55,6 +55,9 @@ public class CommandHandler implements Runnable {
                     ConnectionHandler.instance.screenShare = false;
                 case "getSharedScreen":
                     String base64ImagePiece = packet.getData();
+                    if (base64ImagePiece == null){
+                        break;
+                    }
                     if(base64ImagePiece.equals("fullImage") && WindowManager.instance.watchScreenAllow){
                         WindowManager.instance.ScreenShareDisplay(ConnectionHandler.instance.base64ImagePiece);
                         ConnectionHandler.instance.base64ImagePiece = "";

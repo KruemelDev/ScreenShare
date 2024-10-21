@@ -124,7 +124,7 @@ public class WindowManager {
             public void actionPerformed(ActionEvent event) {
                 System.out.println("clientNameList.getSelectedValue()");
                 ConnectionHandler.instance.RequestScreenShare(clientNameList.getSelectedValue());
-
+                WindowManager.instance.watchScreenAllow = true;
             }
         });
         panel.add(connectButton);
@@ -141,7 +141,14 @@ public class WindowManager {
         JPanel settingsPanel = new JPanel();
 
         try {
-            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+            byte[] imageBytes;
+            try{
+                imageBytes = Base64.getDecoder().decode(base64Image);
+            }
+            catch (IllegalArgumentException e){
+                return;
+            }
+
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageBytes);
             BufferedImage image = ImageIO.read(byteArrayInputStream);
 
@@ -165,6 +172,7 @@ public class WindowManager {
                     System.out.println("Stop watching");
                     watchScreenAllow = false;
                     firstScreenShareFrame = false;
+                    ConnectionHandler.instance.screenShare = false;
                     ConnectionHandler.instance.StopWatchingScreen();
                     WindowManager.instance.ScreenShareConnectionMenu();
                 }

@@ -122,6 +122,7 @@ public class ConnectionHandler {
             throw new RuntimeException(e);
         }
         WriteMessage(json);
+
     }
 
     public void RequestAvailableClients(){

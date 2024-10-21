@@ -8,6 +8,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.kruemel.screenshare.dto.Packet;
@@ -40,6 +41,7 @@ public class CommandHandler {
 
             try {
                 packet = objectMapper.readValue(message, Packet.class);
+
             } catch (JsonProcessingException e) {
                 Packet closePacket = new Packet("closeConnection");
                 ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
@@ -77,25 +79,33 @@ public class CommandHandler {
                     }
                     System.out.println("allowed client " + allowedClient.name);
                     allowedClient.currentScreenWatching = this.client;
-                    this.client.screenShareAllowed.add(allowedClient);
+                    synchronized (this.client.screenShareAllowed){
+                        this.client.screenShareAllowed.add(allowedClient);
+                    }
+
 
                     break;
                 case "getScreen":
-                    String base64ImagePiece = packet.getData();
-                    if(base64ImagePiece.equals("fullImage")){
-                        sendScreen(this.client.base64ImagePiece);
-                        this.client.base64ImagePiece = "";
+                    synchronized (this.client){
+                        String base64ImagePiece = packet.getData();
+                        if(base64ImagePiece.equals("fullImage")){
+                            sendScreen(this.client.base64ImagePiece);
+                            this.client.base64ImagePiece = "";
+                        }
+                        else{
+                            this.client.base64ImagePiece += base64ImagePiece;
+                        }
+                        break;
                     }
-                    else{
-                        this.client.base64ImagePiece += base64ImagePiece;
-                    }
-                    break;
+
                 case "stopScreen":
                     System.out.println("this.client " + this.client.name);
                     if(this.client.currentScreenWatching == null){
                         break;
                     }
-                    this.client.currentScreenWatching.screenShareAllowed.remove(this.client);
+                    synchronized (this.client.currentScreenWatching.screenShareAllowed) {
+                        this.client.currentScreenWatching.screenShareAllowed.remove(this.client);
+                    }
 
                     if (this.client.currentScreenWatching.screenShareAllowed.isEmpty()) {
 
@@ -108,7 +118,7 @@ public class CommandHandler {
                             throw new RuntimeException(e);
                         }
                         this.client.currentScreenWatching.WriteMessage(json);
-
+                        this.client.currentScreenWatching.base64ImagePiece = "";
                     }
 
                     this.client.currentScreenWatching = null;
@@ -124,39 +134,45 @@ public class CommandHandler {
         String json;
         ArrayList<ClientData> clientsToRemove = new ArrayList<>();
 
-        for (ClientData client : this.client.screenShareAllowed) {
+        synchronized (this.client.screenShareAllowed){
+            for (ClientData client : this.client.screenShareAllowed) {
 
-            if(!ConnectionHandler.ClientOnline(client.name)){
-                clientsToRemove.add(client);
-                continue;
-            }
-            for (int i = 0; i < base64Image.length(); i += chunkSize) {
+                if(!ConnectionHandler.ClientOnline(client.name)){
+                    clientsToRemove.add(client);
+                    continue;
+                }
+                for (int i = 0; i < base64Image.length(); i += chunkSize) {
 
-                String chunk = base64Image.substring(i, Math.min(i + chunkSize, base64Image.length()));
-                Packet screenPacket;
+                    String chunk = base64Image.substring(i, Math.min(i + chunkSize, base64Image.length()));
+                    Packet screenPacket;
 
-                try {
-                    screenPacket = new Packet("getSharedScreen", chunk);
-                    json = ow.writeValueAsString(screenPacket);
+                    try {
+                        screenPacket = new Packet("getSharedScreen", chunk);
+                        json = ow.writeValueAsString(screenPacket);
 
-                    client.WriteMessage(json);
-                } catch (JsonProcessingException e) {
+                        client.WriteMessage(json);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+                Packet imageCompletePacket = new Packet("getSharedScreen", "fullImage");
+                try{
+                    json = ow.writeValueAsString(imageCompletePacket);
+                } catch(JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }
 
-            }
-            Packet imageCompletePacket = new Packet("getSharedScreen", "fullImage");
-            try{
-                json = ow.writeValueAsString(imageCompletePacket);
-            } catch(JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+                client.WriteMessage(json);
 
-            client.WriteMessage(json);
-
+            }
         }
+
         for (ClientData client : clientsToRemove) {
-            this.client.screenShareAllowed.remove(client);
+            synchronized (this.client.screenShareAllowed){
+                this.client.screenShareAllowed.remove(client);
+            }
+
         }
     }
 
