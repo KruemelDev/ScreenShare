@@ -15,13 +15,6 @@ public class ClientData {
 	public String base64ImagePiece = "";
 	public ClientData currentScreenWatching;
 	public ArrayList<ClientData> screenShareAllowed = new ArrayList<>();
-	public enum statusModes{
-		AVAILABLE,
-		TRANSFER_SCREEN,
-
-	}
-
-	public statusModes status;
 
 	public ClientData(String name, Socket socket) {
 		this.name = name;

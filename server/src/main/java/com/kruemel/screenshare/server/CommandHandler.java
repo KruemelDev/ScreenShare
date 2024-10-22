@@ -42,7 +42,12 @@ public class CommandHandler {
             try {
                 packet = objectMapper.readValue(message, Packet.class);
 
-            } catch (JsonProcessingException e) {
+            } catch(JsonParseException e){
+                ConnectionHandler.removeClient(this.client);
+                break;
+            }
+
+            catch (JsonProcessingException e) {
                 Packet closePacket = new Packet("closeConnection");
                 ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
                 String json;
@@ -98,7 +103,7 @@ public class CommandHandler {
                         break;
                     }
 
-                case "stopScreen":
+                case "stopWatching":
                     System.out.println("this.client " + this.client.name);
                     if(this.client.currentScreenWatching == null){
                         break;
@@ -106,22 +111,43 @@ public class CommandHandler {
                     synchronized (this.client.currentScreenWatching.screenShareAllowed) {
                         this.client.currentScreenWatching.screenShareAllowed.remove(this.client);
                     }
+                    synchronized (this.client.currentScreenWatching.screenShareAllowed){
+                        if (this.client.currentScreenWatching.screenShareAllowed.isEmpty()) {
 
-                    if (this.client.currentScreenWatching.screenShareAllowed.isEmpty()) {
-
-                        Packet stopScreenSharePacket = new Packet("sharedScreenStop");
-                        String json;
-                        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-                        try {
-                            json = ow.writeValueAsString(stopScreenSharePacket);
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException(e);
+                            Packet stopScreenSharePacket = new Packet("sharedScreenStop");
+                            String json;
+                            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+                            try {
+                                json = ow.writeValueAsString(stopScreenSharePacket);
+                            } catch (JsonProcessingException e) {
+                                throw new RuntimeException(e);
+                            }
+                            this.client.currentScreenWatching.WriteMessage(json);
+                            this.client.currentScreenWatching.base64ImagePiece = "";
                         }
-                        this.client.currentScreenWatching.WriteMessage(json);
-                        this.client.currentScreenWatching.base64ImagePiece = "";
                     }
 
                     this.client.currentScreenWatching = null;
+                    break;
+                case "sharedScreenStop":
+                    synchronized (this.client.screenShareAllowed){
+                        ArrayList<ClientData> clientsToRemove = new ArrayList<>();
+                        for(ClientData c : this.client.screenShareAllowed){
+                            clientsToRemove.add(c);
+                            Packet stopScreenSharePacket = new Packet("error", "Der Host hat das teilen beendet");
+                            String json;
+                            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+                            try {
+                                json = ow.writeValueAsString(stopScreenSharePacket);
+                            } catch (JsonProcessingException e) {
+                                throw new RuntimeException(e);
+                            }
+                            c.WriteMessage(json);
+                        }
+                        for(ClientData c : clientsToRemove){
+                            this.client.screenShareAllowed.remove(c);
+                        }
+                    }
                     break;
             }
         }

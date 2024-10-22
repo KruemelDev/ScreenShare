@@ -14,7 +14,6 @@ public class ConnectionHandler implements Runnable{
 
 	@Override
 	public void run() {
-		this.client.status = ClientData.statusModes.AVAILABLE;
 		CommandHandler commandHandler = new CommandHandler(this.client);
 		commandHandler.HandleCommands(this.client);
 	}
@@ -22,10 +21,7 @@ public class ConnectionHandler implements Runnable{
 	public static ArrayList<String> getAvailableClientsName() {
 		ArrayList<String> clientList = new ArrayList<>();
 		for(ClientData client : clients) {
-			if (client.status == ClientData.statusModes.AVAILABLE){
-				clientList.add(client.name);
-			}
-
+			clientList.add(client.name);
 		}
 		return clientList;
 	}

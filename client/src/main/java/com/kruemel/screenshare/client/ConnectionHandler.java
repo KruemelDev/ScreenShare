@@ -22,6 +22,9 @@ public class ConnectionHandler {
     public volatile boolean screenShare = false;
     public String base64ImagePiece = "";
 
+    public int fps = 30;
+    public float quality = 0.5f;
+
     public ConnectionHandler(){
         instance = this;
     }
@@ -80,7 +83,7 @@ public class ConnectionHandler {
 
     }
     public void StopWatchingScreen(){
-        Packet requestScreenShareAcceptPackage = new Packet("stopScreen");
+        Packet requestScreenShareAcceptPackage = new Packet("stopWatching");
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json;
         try {
@@ -91,9 +94,20 @@ public class ConnectionHandler {
         WriteMessage(json);
 
     }
-
+    public void ScreenShareStop(){
+        Packet requestScreenShareAcceptPackage = new Packet("sharedScreenStop");
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
+        try {
+            json = ow.writeValueAsString(requestScreenShareAcceptPackage);
+        } catch(JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        WriteMessage(json);
+        screenShare = false;
+    }
     public void ScreenShareStart(){
-        ShareScreen screenShare = new ShareScreen();
+        ShareScreen screenShare = new ShareScreen(quality, fps);
         Thread shareScreenThread = new Thread(screenShare);
         this.screenShare = true;
         System.out.println("start screen share");

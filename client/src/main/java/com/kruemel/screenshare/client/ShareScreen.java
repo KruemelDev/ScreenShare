@@ -18,7 +18,45 @@ import java.util.Base64;
 
 public class ShareScreen extends Thread {
 
+    private volatile float quality;
+    private volatile int fps;
 
+    public static ShareScreen instance;
+    public float getQuality() {
+        return quality;
+    }
+
+    public void setQuality(float quality) {
+        if (quality > 1.0f) {
+            this.quality = 1.0f;
+        }
+        else if (quality < 0.0f) {
+            this.quality = 0.1f;
+        }
+        else{
+            this.quality = quality;
+        }
+
+
+    }
+
+    public int getFps() {
+        return fps;
+    }
+
+    public void setFps(int fps) {
+        if(fps <= 30 && fps > 0)this.fps = fps;
+        if (fps > 30) this.fps = 30;
+        if(fps <= 0) this.fps = 1;
+    }
+
+
+
+    public ShareScreen(float quality, int fps){
+        setQuality(quality);
+        setFps(fps);
+        instance = this;
+    }
     public void run(){
         while (ConnectionHandler.instance.screenShare){
             Share();
@@ -30,7 +68,9 @@ public class ShareScreen extends Thread {
         try {
 
             BufferedImage screenshot = captureScreenshot();
-            String base64String = compressAndConvertToBase64(screenshot, 0.5f);
+
+            float quality = getQuality();
+            String base64String = compressAndConvertToBase64(screenshot, quality);
 
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             String json;
@@ -57,13 +97,13 @@ public class ShareScreen extends Thread {
             }
 
             ConnectionHandler.instance.WriteMessage(json);
-            Thread.sleep(50);
+            Thread.sleep(Math.round(1000f/fps));
 
         } catch (AWTException | IOException e) {
             ConnectionHandler.instance.screenShare = false;
             e.printStackTrace();
             //Packet packet = new Packet();
-            // logik fürs beenden von screenshare
+            //TODO logik fürs beenden von screenshare
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -91,6 +131,10 @@ public class ShareScreen extends Thread {
 
         byte[] imageBytes = byteArrayOutputStream.toByteArray();
         return Base64.getEncoder().encodeToString(imageBytes);
+    }
+    public void changeScreenShareSettings(float quality, int fps){
+        setFps(fps);
+        setQuality(quality);
     }
 
 
