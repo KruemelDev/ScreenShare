@@ -21,7 +21,7 @@ public class Server {
         try {
             server = new ServerSocket();
             server.setReuseAddress(true);
-            server.bind(new InetSocketAddress("0.0.0.0", 45555));
+            server.bind(new InetSocketAddress("0.0.0.0", Integer.parseInt(args[0])));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

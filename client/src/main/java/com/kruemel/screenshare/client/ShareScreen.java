@@ -8,6 +8,7 @@ import com.kruemel.screenshare.dto.Packet;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -15,6 +16,7 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 import java.util.Base64;
+import java.util.Objects;
 
 public class ShareScreen extends Thread {
 
@@ -68,9 +70,9 @@ public class ShareScreen extends Thread {
         try {
 
             BufferedImage screenshot = captureScreenshot();
-
+            BufferedImage mouseScreenshot = placeMouseOnScreenShot(screenshot);
             float quality = getQuality();
-            String base64String = compressAndConvertToBase64(screenshot, quality);
+            String base64String = compressAndConvertToBase64(mouseScreenshot, quality);
 
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             String json;
@@ -107,6 +109,27 @@ public class ShareScreen extends Thread {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private BufferedImage placeMouseOnScreenShot(BufferedImage screenshot) {
+
+        Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
+        int mouseX = (int) mouseLocation.getX();
+        int mouseY = (int) mouseLocation.getY();
+
+        Graphics2D graphics = screenshot.createGraphics();
+
+        Image cursor;
+        try {
+            cursor = ImageIO.read(Objects.requireNonNull(ShareScreen.class.getResourceAsStream("/redSquare.jpg")));
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load cursor image", e);
+        }
+
+        graphics.drawImage(cursor, mouseX, mouseY, 25, 25, null);
+        graphics.dispose();
+
+        return screenshot;
     }
 
 

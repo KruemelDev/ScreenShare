@@ -91,8 +91,15 @@ public class CommandHandler {
 
                     break;
                 case "getScreen":
+
+                    if(packet.getData() == null) {
+                        this.client.base64ImagePiece = "";
+                        break;
+                    }
                     synchronized (this.client){
-                        String base64ImagePiece = packet.getData();
+
+                        String base64ImagePiece = packet.getData().replaceAll("[\\p{Cntrl}]", "");
+
                         if(base64ImagePiece.equals("fullImage")){
                             sendScreen(this.client.base64ImagePiece);
                             this.client.base64ImagePiece = "";

@@ -54,7 +54,11 @@ public class CommandHandler implements Runnable {
                 case "sharedScreenStop":
                     ConnectionHandler.instance.screenShare = false;
                 case "getSharedScreen":
-                    String base64ImagePiece = packet.getData();
+                    if(packet.getData() == null) {
+                        ConnectionHandler.instance.base64ImagePiece = "";
+                        break;
+                    }
+                    String base64ImagePiece = packet.getData().replaceAll("[\\p{Cntrl}]", "");
                     if (base64ImagePiece == null){
                         break;
                     }
