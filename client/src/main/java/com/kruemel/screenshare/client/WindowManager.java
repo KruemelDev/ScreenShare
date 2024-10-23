@@ -161,9 +161,9 @@ public class WindowManager {
 
         JLabel qualityLabel = new JLabel("Quality:");
         qualityLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        String[] qualityOptions = {"25%", "50%", "75%", "100%"};
+        String[] qualityOptions = {"10%", "30%", "50%", "70%", "100%"};
         JComboBox<String> qualityComboBox = new JComboBox<>(qualityOptions);
-        qualityComboBox.setSelectedIndex(1);
+        qualityComboBox.setSelectedIndex(2);
         qualityComboBox.setMaximumSize(new Dimension(100, 25));
 
         JButton applyButton = new JButton("Apply");

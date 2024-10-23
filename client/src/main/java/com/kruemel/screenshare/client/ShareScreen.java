@@ -8,15 +8,10 @@ import com.kruemel.screenshare.dto.Packet;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
+import javax.imageio.*;
 import javax.imageio.stream.ImageOutputStream;
 import java.util.Base64;
-import java.util.Objects;
 
 public class ShareScreen extends Thread {
 
@@ -24,6 +19,8 @@ public class ShareScreen extends Thread {
     private volatile int fps;
 
     public static ShareScreen instance;
+
+    private ImageWriter imageWriter;
     public float getQuality() {
         return quality;
     }
@@ -58,55 +55,102 @@ public class ShareScreen extends Thread {
         setQuality(quality);
         setFps(fps);
         instance = this;
+        imageWriter = createImageWriter();
     }
     public void run(){
         while (ConnectionHandler.instance.screenShare){
             Share();
+
+        }
+
+    }
+
+    private BufferedImage resizeToFullHD(BufferedImage originalImage) {
+        int targetWidth = 1920;
+        int targetHeight = 1080;
+
+        if (originalImage.getWidth() <= targetWidth && originalImage.getHeight() <= targetHeight) {
+            return originalImage;
+        }
+
+        double originalAspectRatio = (double) originalImage.getWidth() / originalImage.getHeight();
+        double targetAspectRatio = (double) targetWidth / targetHeight;
+
+        int newWidth, newHeight;
+        if (originalAspectRatio > targetAspectRatio) {
+            newWidth = targetWidth;
+            newHeight = (int) (targetWidth / originalAspectRatio);
+        } else {
+            newHeight = targetHeight;
+            newWidth = (int) (targetHeight * originalAspectRatio);
+        }
+
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = resizedImage.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+        g.dispose();
+
+        return resizedImage;
+    }
+    private long firstMeasureMilliSeconds;
+    private long secondMeasureMilliSeconds;
+    private void sendImageInPieces(String base64String){
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json;
+
+        int chunkSize = 1024;
+        for (int i = 0; i < base64String.length(); i += chunkSize) {
+            String chunk = base64String.substring(i, Math.min(i + chunkSize, base64String.length()));
+            Packet screenPacket;
+            try {
+                screenPacket = new Packet("getScreen", chunk);
+                json = ow.writeValueAsString(screenPacket);
+
+            } catch(JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            ConnectionHandler.instance.WriteMessage(json);
+        }
+
+        Packet imageCompletePacket = new Packet("getScreen", "fullImage");
+        try{
+            json = ow.writeValueAsString(imageCompletePacket);
+        } catch(JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        secondMeasureMilliSeconds = System.currentTimeMillis();
+        long distance = secondMeasureMilliSeconds - firstMeasureMilliSeconds;
+
+        int durationBetweenFrames = Math.round((float) 1000/fps);
+        if(distance >= durationBetweenFrames){
+            ConnectionHandler.instance.WriteMessage(json);
+        }
+        else{
+            try {
+                Thread.sleep(durationBetweenFrames - distance);
+                ConnectionHandler.instance.WriteMessage(json);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
 
     }
 
     public void Share(){
         try {
-
+            firstMeasureMilliSeconds = System.currentTimeMillis();
             BufferedImage screenshot = captureScreenshot();
             BufferedImage mouseScreenshot = placeMouseOnScreenShot(screenshot);
+            BufferedImage fullHdImage = resizeToFullHD(mouseScreenshot);
+
             float quality = getQuality();
-            String base64String = compressAndConvertToBase64(mouseScreenshot, quality);
+            String base64String = compressAndConvertToBase64(fullHdImage, quality);
 
-            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            String json;
-
-            int chunkSize = 1024;
-            for (int i = 0; i < base64String.length(); i += chunkSize) {
-                String chunk = base64String.substring(i, Math.min(i + chunkSize, base64String.length()));
-                Packet screenPacket;
-                try {
-                    screenPacket = new Packet("getScreen", chunk);
-                    json = ow.writeValueAsString(screenPacket);
-
-                } catch(JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                ConnectionHandler.instance.WriteMessage(json);
-            }
-
-            Packet imageCompletePacket = new Packet("getScreen", "fullImage");
-            try{
-                json = ow.writeValueAsString(imageCompletePacket);
-            } catch(JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-
-            ConnectionHandler.instance.WriteMessage(json);
-            Thread.sleep(Math.round(1000f/fps));
+            sendImageInPieces(base64String);
 
         } catch (AWTException | IOException e) {
-            ConnectionHandler.instance.screenShare = false;
-            e.printStackTrace();
-            //Packet packet = new Packet();
-            //TODO logik fürs beenden von screenshare
-        } catch (InterruptedException e) {
+            ConnectionHandler.instance.ScreenShareStop();
             throw new RuntimeException(e);
         }
     }
@@ -119,14 +163,8 @@ public class ShareScreen extends Thread {
 
         Graphics2D graphics = screenshot.createGraphics();
 
-        Image cursor;
-        try {
-            cursor = ImageIO.read(Objects.requireNonNull(ShareScreen.class.getResourceAsStream("/redSquare.jpg")));
-        } catch (IOException e) {
-            throw new RuntimeException("Could not load cursor image", e);
-        }
-
-        graphics.drawImage(cursor, mouseX, mouseY, 25, 25, null);
+        graphics.setColor(new Color(0x3DE83D));
+        graphics.fillOval(mouseX, mouseY, 18,18);
         graphics.dispose();
 
         return screenshot;
@@ -138,23 +176,28 @@ public class ShareScreen extends Thread {
         Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
         return robot.createScreenCapture(screenRect);
     }
-    private static String compressAndConvertToBase64(BufferedImage image, float quality) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    private String compressAndConvertToBase64(BufferedImage image, float quality) throws IOException {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ImageOutputStream ios = ImageIO.createImageOutputStream(byteArrayOutputStream)) {
 
-        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
-        ImageOutputStream ios = ImageIO.createImageOutputStream(byteArrayOutputStream);
-        writer.setOutput(ios);
+            imageWriter.setOutput(ios);
+            ImageWriteParam param = imageWriter.getDefaultWriteParam();
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(quality);
 
-        ImageWriteParam param = writer.getDefaultWriteParam();
-        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-        param.setCompressionQuality(quality);
+            imageWriter.write(null, new IIOImage(image, null, null), param);
 
-        writer.write(null, new IIOImage(image, null, null), param);
-        writer.dispose();
-
-        byte[] imageBytes = byteArrayOutputStream.toByteArray();
-        return Base64.getEncoder().encodeToString(imageBytes);
+            byte[] imageBytes = byteArrayOutputStream.toByteArray();
+            return Base64.getEncoder().encodeToString(imageBytes);
+        } catch (IOException e) {
+            throw new IOException("Error occurred while writing the JPEG image", e);
+        }
     }
+
+    private ImageWriter createImageWriter() {
+        return ImageIO.getImageWritersByFormatName("jpg").next();
+    }
+
     public void changeScreenShareSettings(float quality, int fps){
         setFps(fps);
         setQuality(quality);
