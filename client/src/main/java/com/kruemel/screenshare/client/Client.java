@@ -15,6 +15,8 @@ public class Client {
         ConnectionHandler.instance.in = null;
         ConnectionHandler.instance.out = null;
         ConnectionHandler.instance.screenShare = false;
+        WindowManager.instance.firstScreenShareFrame = true;
+        WindowManager.instance.watchScreenAllow = false;
         WindowManager.instance.frame.getContentPane().removeAll();
         WindowManager.instance.frame.repaint();
         WindowManager.instance.AddConnectionFields();

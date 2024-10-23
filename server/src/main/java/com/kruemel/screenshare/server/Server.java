@@ -13,6 +13,9 @@ import java.util.Objects;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.kruemel.screenshare.dto.Packet;
+import com.kruemel.screenshare.server.clientHandler.ClientData;
+import com.kruemel.screenshare.server.clientHandler.CommandListener;
+
 public class Server {
 
     public static void main(String[] args){
@@ -40,8 +43,8 @@ public class Server {
                 if(Objects.equals(packet.getCommand(), "name") && !ConnectionHandler.ClientOnline(name) && !name.contains("|")) {
                     ClientData client = new ClientData(name, socket);
                     ConnectionHandler.clients.add(client);
-                    Thread clientHandler = new Thread(new ConnectionHandler(client));
-                    clientHandler.start();
+                    Thread commandListener = new Thread(new CommandListener(client));
+                    commandListener.start();
 
                 }
                 else{

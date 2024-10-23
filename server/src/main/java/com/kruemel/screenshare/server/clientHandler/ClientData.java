@@ -1,4 +1,6 @@
-package com.kruemel.screenshare.server;
+package com.kruemel.screenshare.server.clientHandler;
+
+import com.kruemel.screenshare.server.ConnectionHandler;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

@@ -1,22 +1,12 @@
 package com.kruemel.screenshare.server;
 
+import com.kruemel.screenshare.server.clientHandler.ClientData;
+
 import java.util.ArrayList;
 
-public class ConnectionHandler implements Runnable{
+public class ConnectionHandler {
 
 	public static ArrayList<ClientData> clients = new ArrayList<ClientData>();
-	public ClientData client;
-
-	public ConnectionHandler(ClientData client) {
-		this.client = client;
-	}
-
-
-	@Override
-	public void run() {
-		CommandHandler commandHandler = new CommandHandler(this.client);
-		commandHandler.HandleCommands(this.client);
-	}
 
 	public static ArrayList<String> getAvailableClientsName() {
 		ArrayList<String> clientList = new ArrayList<>();

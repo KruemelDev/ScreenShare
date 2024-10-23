@@ -14,6 +14,7 @@ public class CommandHandler implements Runnable {
     public void run() {
         String message = "";
         Packet packet;
+        ObjectMapper objectMapper = new ObjectMapper();
         while (true) {
             try {
                 message = ConnectionHandler.instance.in.readUTF();
@@ -29,8 +30,6 @@ public class CommandHandler implements Runnable {
             catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
-            ObjectMapper objectMapper = new ObjectMapper();
 
             try {
                 packet = objectMapper.readValue(message, Packet.class);

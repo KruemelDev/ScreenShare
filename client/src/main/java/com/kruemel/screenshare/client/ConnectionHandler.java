@@ -5,10 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.kruemel.screenshare.dto.Packet;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static com.kruemel.screenshare.dto.Util.dataToJson;
 
 public class ConnectionHandler {
     public Socket socket;
@@ -35,10 +32,7 @@ public class ConnectionHandler {
                 this.in = new DataInputStream(socket.getInputStream());
                 this.out = new DataOutputStream(socket.getOutputStream());
 
-                Packet packet = new Packet("name", name);
-                ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-                String json = ow.writeValueAsString(packet);
-                WriteMessage(json);
+                WriteMessage(dataToJson("name", name));
 
                 Thread commandHandlerThread = new Thread(new CommandHandler());
                 commandHandlerThread.start();
@@ -62,18 +56,9 @@ public class ConnectionHandler {
         }
 
     }
-
     synchronized public void CloseConnection(){
         if (socket != null){
-            Packet packet = new Packet("closeConnection");
-            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            String json;
-            try {
-                json = ow.writeValueAsString(packet);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-            WriteMessage(json);
+            WriteMessage(dataToJson("closeConnection"));
             try {
                 socket.close();
             } catch (IOException e) {
@@ -83,27 +68,10 @@ public class ConnectionHandler {
 
     }
     public void StopWatchingScreen(){
-        Packet requestScreenShareAcceptPackage = new Packet("stopWatching");
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String json;
-        try {
-            json = ow.writeValueAsString(requestScreenShareAcceptPackage);
-        } catch(JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        WriteMessage(json);
-
+        WriteMessage(dataToJson("stopWatching"));
     }
     public void ScreenShareStop(){
-        Packet requestScreenShareAcceptPackage = new Packet("sharedScreenStop");
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String json;
-        try {
-            json = ow.writeValueAsString(requestScreenShareAcceptPackage);
-        } catch(JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        WriteMessage(json);
+        WriteMessage(dataToJson("sharedScreenStop"));
         screenShare = false;
     }
     public void ScreenShareStart(){
@@ -115,42 +83,17 @@ public class ConnectionHandler {
     }
 
     public void SendScreenShareAcception(String name){
-        Packet requestScreenShareAcceptPackage = new Packet("acceptScreenShare", name);
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String json;
-        try {
-            json = ow.writeValueAsString(requestScreenShareAcceptPackage);
-        } catch(JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        WriteMessage(json);
+        WriteMessage(dataToJson("acceptScreenShare", name));
     }
 
     public void RequestScreenShare(String target) {
-        Packet requestScreenSharePackage = new Packet("requestScreenShare", target);
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String json;
-        try {
-            json = ow.writeValueAsString(requestScreenSharePackage);
-        } catch(JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        WriteMessage(json);
-
+        WriteMessage(dataToJson("requestScreenShare", target));
     }
 
     public void RequestAvailableClients(){
-        Packet getClientsPacket = new Packet("getClients");
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String json;
-        try {
-            json = ow.writeValueAsString(getClientsPacket);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
-        WriteMessage(json);
+        WriteMessage(dataToJson("getClients"));
     }
+
 
 
     public void WriteMessage(String message) {

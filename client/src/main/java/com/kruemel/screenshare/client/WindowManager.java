@@ -23,7 +23,7 @@ public class WindowManager {
     public static WindowManager instance = null;
     public boolean watchScreenAllow = true;
 
-    private boolean firstScreenShareFrame = false;
+    public boolean firstScreenShareFrame = true;
 
     private boolean stopWatching = false;
 
@@ -228,16 +228,24 @@ public class WindowManager {
         frame.revalidate();
         frame.repaint();
     }
+    private JPanel screenPanel;
+    private JPanel settingsPanel;
+    private JPanel mainPanel;
+    private JButton stopButton;
+    private JLabel screenLabel;
 
 
+    private void initScreenShare(){
+        mainPanel = new JPanel(new BorderLayout());
+        screenPanel = new JPanel();
+        settingsPanel = new JPanel();
+
+        stopButton = new JButton("Stop Watching");
+        screenLabel = new JLabel();
+    }
     public void ScreenShareDisplay(String base64Image) {
         watchScreenAllow = true;
         stopWatching = false;
-
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        JPanel screenPanel = new JPanel();
-        JPanel settingsPanel = new JPanel();
-
 
         byte[] imageBytes;
         try{
@@ -247,6 +255,13 @@ public class WindowManager {
             return;
         }
 
+        if(firstScreenShareFrame){
+            initScreenShare();
+            frame.getContentPane().removeAll();
+            frame.repaint();
+        }
+
+
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageBytes);
         BufferedImage image;
         try{
@@ -254,7 +269,7 @@ public class WindowManager {
         }
         catch (IOException e){
             watchScreenAllow = false;
-            firstScreenShareFrame = false;
+            firstScreenShareFrame = true;
             ConnectionHandler.instance.screenShare = false;
             ConnectionHandler.instance.StopWatchingScreen();
             WindowManager.instance.ScreenShareConnectionMenu();
@@ -271,55 +286,57 @@ public class WindowManager {
         int newImageWidth = (int) (image.getWidth() * scale);
         int newImageHeight = (int) (image.getHeight() * scale);
 
-        Image newImage = image.getScaledInstance(newImageWidth, newImageHeight, Image.SCALE_FAST);
-        ImageIcon imageIcon = new ImageIcon(newImage);
-        JLabel label = new JLabel(imageIcon);
-        screenPanel.removeAll();
-        screenPanel.add(label);
+        BufferedImage scaledImage = getScaledImage(image, newImageWidth, newImageHeight);
+        ImageIcon imageIcon = new ImageIcon(scaledImage);
+        screenLabel.setIcon(imageIcon);
 
+        if(firstScreenShareFrame){
+            screenPanel.add(screenLabel);
+        }
 
-
-        JButton stopButton = new JButton("Stop Watching");
-        stopButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                stopWatching = true;
-                watchScreenAllow = false;
-                firstScreenShareFrame = false;
-                ConnectionHandler.instance.screenShare = false;
-                ConnectionHandler.instance.StopWatchingScreen();
-                WindowManager.instance.ScreenShareConnectionMenu();
-                return;
-            }
-        });
+        if (settingsPanel.getComponentCount() == 0) {
+            stopButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent event) {
+                    stopWatching = true;
+                    watchScreenAllow = false;
+                    firstScreenShareFrame = true;
+                    ConnectionHandler.instance.screenShare = false;
+                    ConnectionHandler.instance.StopWatchingScreen();
+                    WindowManager.instance.ScreenShareConnectionMenu();
+                }
+            });
+            settingsPanel.add(stopButton);
+        }
 
         if(stopWatching) return;
 
-        settingsPanel.removeAll();
-        settingsPanel.add(stopButton);
-
-        mainPanel.add(settingsPanel, BorderLayout.WEST);
-        mainPanel.add(screenPanel, BorderLayout.CENTER);
-
-        if (!firstScreenShareFrame) {
+        if (firstScreenShareFrame) {
+            mainPanel.add(settingsPanel, BorderLayout.WEST);
+            mainPanel.add(screenPanel, BorderLayout.CENTER);
             frame.add(mainPanel);
             frame.setVisible(true);
-            firstScreenShareFrame = true;
-        } else {
-            frame.getContentPane().removeAll();
-            frame.add(mainPanel);
+            firstScreenShareFrame = false;
         }
 
         frame.revalidate();
         frame.repaint();
 
+    }
 
+    public BufferedImage getScaledImage(BufferedImage src, int w, int h) {
+        BufferedImage resized = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = resized.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.drawImage(src, 0, 0, w, h, null);
+        g2.dispose();
+        return resized;
     }
 
     public void RequestForTransferScreenPopUp(String name){
         int result = JOptionPane.showConfirmDialog(
                 frame,
-                "Do you want allow Screen Sharing from " + name + "?",
+                "Do you want to share your screen with " + name + "?",
                 "Confirmation",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
