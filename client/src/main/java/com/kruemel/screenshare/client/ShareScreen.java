@@ -198,7 +198,7 @@ public class ShareScreen extends Thread {
         return ImageIO.getImageWritersByFormatName("jpg").next();
     }
 
-    public void changeScreenShareSettings(float quality, int fps){
+    public void ChangeScreenShareSettings(int fps, float quality){
         setFps(fps);
         setQuality(quality);
     }

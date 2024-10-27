@@ -19,8 +19,18 @@ public class ConnectionHandler {
     public volatile boolean screenShare = false;
     public String base64ImagePiece = "";
 
-    public int fps = 30;
-    public float quality = 0.5f;
+    private int fps = 30;
+    private float quality = 0.5f;
+
+
+    public int getFps() {
+        return fps;
+    }
+
+    public float getQuality() {
+        return quality;
+    }
+
 
     public ConnectionHandler(){
         instance = this;
@@ -94,7 +104,13 @@ public class ConnectionHandler {
         WriteMessage(dataToJson("getClients"));
     }
 
-
+    public void ChangeSettings(int fps, float quality){
+        this.fps = fps;
+        this.quality = quality;
+        if (ShareScreen.instance != null){
+            ShareScreen.instance.ChangeScreenShareSettings(this.fps, this.quality);
+        }
+    }
 
     public void WriteMessage(String message) {
         try {

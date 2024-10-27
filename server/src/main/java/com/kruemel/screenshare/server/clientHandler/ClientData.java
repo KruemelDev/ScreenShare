@@ -18,6 +18,7 @@ public class ClientData {
 	public ClientData currentScreenWatching;
 	public ArrayList<ClientData> screenShareAllowed = new ArrayList<>();
 
+	public boolean error = false;
 	public ClientData(String name, Socket socket) {
 		this.name = name;
 		this.socket = socket;
@@ -26,42 +27,42 @@ public class ClientData {
 			this.out = new DataOutputStream(this.socket.getOutputStream());
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			ConnectionHandler.removeClient(this);
+			this.error = true;
 		}
 
 	}
 	@Override
-	public boolean equals(Object obj) {
-		if(this == obj){
-			return true;
-		}
-		if(obj == null || this.getClass() != obj.getClass()){
-			return false;
-		}
-		ClientData client = (ClientData) obj;
-		return this.name.equals(client.name);
-	}
-	public void WriteMessage(String message) {
-		try {
-			if (this.out != null) {
-				this.out.writeUTF(message);
-				this.out.flush();
-			}
-		} catch (IOException e) {
+public boolean equals(Object obj) {
+    if (this == obj) {
+        return true;
+    }
+    if (obj == null || this.getClass() != obj.getClass()) {
+        return false;
+    }
+    ClientData client = (ClientData) obj;
+    return this.name != null && this.name.equals(client.name);
+}
 
-			try {
-				this.socket.close();
-			} catch (IOException ex) {
-				throw new RuntimeException(ex);
-			}
-			finally {
-				ConnectionHandler.removeClient(this);
-			}
-		}
-		catch (NullPointerException e) {
-			ConnectionHandler.removeClient(this);
-		}
-	}
+public void WriteMessage(String message) {
+    try {
+        if (this.out != null) {
+            this.out.writeUTF(message);
+            this.out.flush();
+        }
+    } catch (IOException | NullPointerException e) {
+        try {
+            if (this.socket != null) {
+                this.socket.close();
+            }
+        } catch (IOException closeException) {
+
+        } finally {
+            ConnectionHandler.removeClient(this);
+            this.error = true;
+        }
+    }
+}
 
 	@Override
 	public int hashCode() {

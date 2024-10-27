@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.kruemel.screenshare.server.ConnectionHandler;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static com.kruemel.screenshare.dto.Util.dataToJson;
@@ -20,32 +21,37 @@ public class CommandHandler {
         int chunkSize = 1024;
         ArrayList<ClientData> clientsToRemove = new ArrayList<>();
 
-        synchronized (client.screenShareAllowed){
-            for (ClientData c : client.screenShareAllowed) {
 
-                if(!ConnectionHandler.ClientOnline(c.name)){
-                    clientsToRemove.add(c);
-                    continue;
-                }
-                for (int i = 0; i < base64Image.length(); i += chunkSize) {
+        List<ClientData> clients;
+        synchronized (this.client.screenShareAllowed) {
+            clients = new ArrayList<>(this.client.screenShareAllowed);
+        }
+        for (ClientData c : clients) {
 
-                    String chunk = base64Image.substring(i, Math.min(i + chunkSize, base64Image.length()));
-
-                    c.WriteMessage(dataToJson("getSharedScreen", chunk));
-
-                }
-                c.WriteMessage(dataToJson("getSharedScreen", "fullImage"));
-
+            if (!ConnectionHandler.ClientOnline(c.name)) {
+                clientsToRemove.add(c);
+                continue;
             }
+
+            int imageLength = base64Image.length();
+            StringBuilder chunkBuilder = new StringBuilder(chunkSize);
+
+            for (int i = 0; i < imageLength; i += chunkSize) {
+                chunkBuilder.setLength(0);
+                chunkBuilder.append(base64Image, i, Math.min(i + chunkSize, imageLength));
+
+                c.WriteMessage(dataToJson("getSharedScreen", chunkBuilder.toString()));
+            }
+            c.WriteMessage(dataToJson("getSharedScreen", "fullImage"));
         }
 
-        for (ClientData c : clientsToRemove) {
-            synchronized (client.screenShareAllowed){
-                this.client.screenShareAllowed.remove(c);
+        if (!clientsToRemove.isEmpty()) {
+            synchronized (this.client.screenShareAllowed) {
+                this.client.screenShareAllowed.removeAll(clientsToRemove);
             }
-
         }
     }
+
 
     public void GetScreenHandler(String base64Image) {
         if(base64Image == null) {

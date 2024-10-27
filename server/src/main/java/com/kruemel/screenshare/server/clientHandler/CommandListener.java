@@ -30,16 +30,18 @@ public class CommandListener implements Runnable{
         String message;
         Packet packet;
         CommandHandler commandHandler = new CommandHandler(this.client);
-        while(true){
+        while(!this.client.error){
             try {
                 message = this.client.in.readUTF();
             }
             catch (SocketException e){
-                break;
+                this.client.error = true;
+                return;
             }
             catch (EOFException e){
                 ConnectionHandler.removeClient(this.client);
-                break;
+                this.client.error = true;
+                return;
             }
             catch (IOException e) {
                 throw new RuntimeException(e);
@@ -51,11 +53,13 @@ public class CommandListener implements Runnable{
 
             } catch(JsonParseException e){
                 ConnectionHandler.removeClient(this.client);
-                break;
+                this.client.error = true;
+                return;
             }
 
             catch (JsonProcessingException e) {
                 this.client.WriteMessage(dataToJson("closeConnection"));
+                this.client.error = true;
                 return;
             }
             switch (packet.getCommand()){
@@ -87,8 +91,20 @@ public class CommandListener implements Runnable{
                     break;
             }
         }
-
+        cleanUp();
+        commandHandler = null;
+        System.gc();
     }
 
+    private void cleanUp(){
+        if(this.client.socket != null){
+            try {
+                this.client.socket.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        this.client = null;
 
+    }
 }
