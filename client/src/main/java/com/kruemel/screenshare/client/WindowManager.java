@@ -238,14 +238,15 @@ public class WindowManager {
     private JPanel mainPanel;
     private JButton stopButton;
     private JLabel screenLabel;
-
+    private JButton askRemoteMouseButton;
 
     private void initScreenShare(){
         mainPanel = new JPanel(new BorderLayout());
         screenPanel = new JPanel();
         settingsPanel = new JPanel();
-
+        askRemoteMouseButton = new JButton("Remote Mouse");
         stopButton = new JButton("Stop Watching");
+
         screenLabel = new JLabel();
     }
     public void ScreenShareDisplay(String base64Image) {
@@ -312,6 +313,17 @@ public class WindowManager {
                 }
             });
             settingsPanel.add(stopButton);
+
+            askRemoteMouseButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    ConnectionHandler.instance.RequestRemoteMouse();
+                }
+            });
+            settingsPanel.add(askRemoteMouseButton);
+
+            //TODO add button to pause/stop remote mouse
+            
         }
 
         if(stopWatching) return;
@@ -329,7 +341,7 @@ public class WindowManager {
 
     }
 
-    public BufferedImage getScaledImage(BufferedImage src, int w, int h) {
+    private BufferedImage getScaledImage(BufferedImage src, int w, int h) {
         BufferedImage resized = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resized.createGraphics();
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -337,22 +349,17 @@ public class WindowManager {
         g2.dispose();
         return resized;
     }
-
-    public void RequestForTransferScreenPopUp(String name){
+    public boolean BooleanScreenPopUp(String text){
         int result = JOptionPane.showConfirmDialog(
                 frame,
-                "Do you want to share your screen with " + name + "?",
+                text,
                 "Confirmation",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );
 
 
-        if (result == JOptionPane.YES_OPTION) {
-            ConnectionHandler.instance.SendScreenShareAcception(name);
-            ConnectionHandler.instance.ScreenShareStart();
-
-        }
+        return result == JOptionPane.YES_OPTION;
 
     }
 

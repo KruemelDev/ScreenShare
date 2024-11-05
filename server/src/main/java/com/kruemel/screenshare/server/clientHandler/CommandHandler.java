@@ -2,6 +2,8 @@ package com.kruemel.screenshare.server.clientHandler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.kruemel.screenshare.dto.Packet;
+import com.kruemel.screenshare.dto.Util;
 import com.kruemel.screenshare.server.ConnectionHandler;
 
 import java.util.ArrayList;
@@ -130,7 +132,13 @@ public class CommandHandler {
         }
         return null;
     }
-
+    public void AskForRemoteMouse(){
+        ClientData currentClientWatching = this.client.currentScreenWatching;
+        if(currentClientWatching != null && currentClientWatching.mouseControlClient == null){
+            currentClientWatching.WriteMessage(dataToJson("remoteMouseRequest", this.client.name));
+            //TODO set mouseControlClient variable later because else variable is always null
+        }
+    }
     public void SendAvailableClients(){
         ArrayList<String> availableClientsName = ConnectionHandler.getAvailableClientsName();
         StringBuilder message = new StringBuilder();

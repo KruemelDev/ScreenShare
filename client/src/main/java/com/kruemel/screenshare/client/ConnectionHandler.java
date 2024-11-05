@@ -100,6 +100,10 @@ public class ConnectionHandler {
         WriteMessage(dataToJson("requestScreenShare", target));
     }
 
+    public void RequestRemoteMouse(){
+        WriteMessage(dataToJson("requestRemoteMouse"));
+    }
+
     public void RequestAvailableClients(){
         WriteMessage(dataToJson("getClients"));
     }

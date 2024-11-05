@@ -16,6 +16,7 @@ public class ClientData {
 
 	public String base64ImagePiece = "";
 	public ClientData currentScreenWatching;
+	public ClientData mouseControlClient;
 	public ArrayList<ClientData> screenShareAllowed = new ArrayList<>();
 
 	public boolean error = false;

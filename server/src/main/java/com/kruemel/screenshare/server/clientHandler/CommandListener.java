@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.kruemel.screenshare.dto.Packet;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kruemel.screenshare.dto.Util;
 import com.kruemel.screenshare.server.ConnectionHandler;
 
 import static com.kruemel.screenshare.dto.Util.*;
@@ -89,6 +90,9 @@ public class CommandListener implements Runnable{
                 case "sharedScreenStop":
                     commandHandler.StopScreenShare();
                     break;
+
+                case "requestRemoteMouse":
+                    commandHandler.AskForRemoteMouse();
             }
         }
         cleanUp();

@@ -48,7 +48,12 @@ public class CommandHandler implements Runnable {
                     updateAvailableClientsList(packet.getData());
                     break;
                 case "sharedScreenRequest":
-                    WindowManager.instance.RequestForTransferScreenPopUp(packet.getData());
+                    String sharedScreenRequestName = packet.getData();
+                    if (WindowManager.instance.BooleanScreenPopUp("Do you want to share your screen with " + sharedScreenRequestName + "?")){
+                        ConnectionHandler.instance.SendScreenShareAcception(sharedScreenRequestName);
+                        ConnectionHandler.instance.ScreenShareStart();
+                    }
+
                     break;
                 case "sharedScreenStop":
                     ConnectionHandler.instance.screenShare = false;
@@ -67,6 +72,13 @@ public class CommandHandler implements Runnable {
                     }
                     else{
                         ConnectionHandler.instance.base64ImagePiece += base64ImagePiece;
+                    }
+                    break;
+                case "remoteMouseRequest":
+                    String remoteMouseRequestName = packet.getData();
+                    if(WindowManager.instance.BooleanScreenPopUp("Do you want to allow remote mouse control from " + remoteMouseRequestName + "?")){
+                        //logic for sending mouse pos
+                        System.out.println("i am here" + remoteMouseRequestName);
                     }
                     break;
             }
