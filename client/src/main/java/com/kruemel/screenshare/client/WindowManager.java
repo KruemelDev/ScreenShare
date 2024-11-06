@@ -1,5 +1,7 @@
 package com.kruemel.screenshare.client;
 
+import com.fasterxml.jackson.databind.ser.impl.WritableObjectId;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,7 +12,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
-import java.util.Objects;
 
 public class WindowManager {
     public JFrame frame;
@@ -35,10 +36,6 @@ public class WindowManager {
     }
     public void initConnectionWindow(){
         frame = new JFrame(this.windowName);
-
-        ImageIcon icon = new ImageIcon(WindowManager.class.getResource("/ScreenShareIcon2.png"));
-        frame.setIconImage(icon.getImage());
-
         frame.setSize(new Dimension(width, height));
         frame.setPreferredSize(new Dimension(width, height));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -108,9 +105,9 @@ public class WindowManager {
 
         JPanel listPanel = new JPanel();
         JList<String> clientNameList = new JList<>(ConnectionHandler.instance.availableClients);
-        clientNameList.setPreferredSize(new Dimension(200, 400));
+        clientNameList.setPreferredSize(new Dimension(200, 50));
         clientNameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        listPanel.add(new JScrollPane(clientNameList));
+        listPanel.add(clientNameList);
 
         JPanel screenShareConnectButtons = new JPanel();
         screenShareConnectButtons.setLayout(new BoxLayout(screenShareConnectButtons, BoxLayout.LINE_AXIS));
@@ -159,22 +156,14 @@ public class WindowManager {
 
         JLabel fpsLabel = new JLabel("FPS:");
         fpsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JTextField fpsField = new JTextField(Integer.toString(ConnectionHandler.instance.getFps()));
+        JTextField fpsField = new JTextField("30");
         fpsField.setMaximumSize(new Dimension(100, 25));
 
         JLabel qualityLabel = new JLabel("Quality:");
         qualityLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         String[] qualityOptions = {"10%", "30%", "50%", "70%", "100%"};
         JComboBox<String> qualityComboBox = new JComboBox<>(qualityOptions);
-
-        float quality = ConnectionHandler.instance.getQuality();
-        for (int i = 0; i < qualityOptions.length; i++) {
-            String qualityOption = qualityOptions[i];
-            if (Objects.equals(qualityOption, Util.floatToPercentage(quality))) {
-                qualityComboBox.setSelectedIndex(i);
-            }
-        }
-
+        qualityComboBox.setSelectedIndex(2);
         qualityComboBox.setMaximumSize(new Dimension(100, 25));
 
         JButton applyButton = new JButton("Apply");
@@ -194,8 +183,12 @@ public class WindowManager {
                 if(qualityValue == null) return;
 
                 float quality = Float.parseFloat(qualityValue.replace("%", "")) / 100;
-                ConnectionHandler.instance.ChangeSettings(fps, quality);
-
+                if (ShareScreen.instance == null){
+                    ConnectionHandler.instance.fps = fps;
+                    ConnectionHandler.instance.quality = quality;
+                    return;
+                }
+                ShareScreen.instance.changeScreenShareSettings(quality, fps);
                 if(fps > 30) fpsField.setText("30");
                 if (fps <= 0) fpsField.setText("1");
             }
@@ -224,6 +217,8 @@ public class WindowManager {
         }
 
         screenShareSettings.add(Box.createVerticalGlue());
+
+
 
         mainPanel.add(verticalPanel, BorderLayout.CENTER);
         mainPanel.add(screenShareSettings, BorderLayout.EAST);
@@ -362,6 +357,5 @@ public class WindowManager {
         return result == JOptionPane.YES_OPTION;
 
     }
-
 
 }

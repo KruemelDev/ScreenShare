@@ -19,7 +19,6 @@ public class ClientData {
 	public ClientData mouseControlClient;
 	public ArrayList<ClientData> screenShareAllowed = new ArrayList<>();
 
-	public boolean error = false;
 	public ClientData(String name, Socket socket) {
 		this.name = name;
 		this.socket = socket;
@@ -28,42 +27,42 @@ public class ClientData {
 			this.out = new DataOutputStream(this.socket.getOutputStream());
 		}
 		catch (IOException e) {
-			ConnectionHandler.removeClient(this);
-			this.error = true;
+			throw new RuntimeException(e);
 		}
 
 	}
 	@Override
-public boolean equals(Object obj) {
-    if (this == obj) {
-        return true;
-    }
-    if (obj == null || this.getClass() != obj.getClass()) {
-        return false;
-    }
-    ClientData client = (ClientData) obj;
-    return this.name != null && this.name.equals(client.name);
-}
+	public boolean equals(Object obj) {
+		if(this == obj){
+			return true;
+		}
+		if(obj == null || this.getClass() != obj.getClass()){
+			return false;
+		}
+		ClientData client = (ClientData) obj;
+		return this.name.equals(client.name);
+	}
+	public void WriteMessage(String message) {
+		try {
+			if (this.out != null) {
+				this.out.writeUTF(message);
+				this.out.flush();
+			}
+		} catch (IOException e) {
 
-public void WriteMessage(String message) {
-    try {
-        if (this.out != null) {
-            this.out.writeUTF(message);
-            this.out.flush();
-        }
-    } catch (IOException | NullPointerException e) {
-        try {
-            if (this.socket != null) {
-                this.socket.close();
-            }
-        } catch (IOException closeException) {
-
-        } finally {
-            ConnectionHandler.removeClient(this);
-            this.error = true;
-        }
-    }
-}
+			try {
+				this.socket.close();
+			} catch (IOException ex) {
+				throw new RuntimeException(ex);
+			}
+			finally {
+				ConnectionHandler.removeClient(this);
+			}
+		}
+		catch (NullPointerException e) {
+			ConnectionHandler.removeClient(this);
+		}
+	}
 
 	@Override
 	public int hashCode() {
