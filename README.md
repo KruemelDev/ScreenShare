@@ -1,5 +1,5 @@
 # ScreenShare
-## Simple Screen Sharing application written in java
+## Simple screen sharing application written in Java
 
 ## Set up
 - At least java version 17 is required
