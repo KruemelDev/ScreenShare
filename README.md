@@ -28,3 +28,4 @@
 ## Not implemented
 - Remote Mouse control
 - Remote Keyboard control
+- More security on the server and client side
